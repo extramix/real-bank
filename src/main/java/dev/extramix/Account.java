@@ -10,7 +10,7 @@ public class Account {
 
     public Account(String id, Currency currency) {
         Objects.requireNonNull(id, "id is required");
-        if (id.isBlank()){
+        if (id.isBlank()) {
             throw new IllegalArgumentException("id must not be blank");
         }
         Objects.requireNonNull(currency, "currency is required");
@@ -32,12 +32,14 @@ public class Account {
     }
 
     public void credit(BigDecimal amount) {
+        // TODO: this only works in one thread because the balance could move between the read and act time.
         requirePositive(amount);
         balance = balance.add(amount);
     }
 
     public void debit(BigDecimal amount) {
         requirePositive(amount);
+        // TODO: this only works in one thread because the balance could move between the read and act time.
         if(balance.compareTo(amount) < 0) {
             throw new IllegalStateException("insufficient funds");
         }
