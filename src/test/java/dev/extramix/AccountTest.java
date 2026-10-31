@@ -8,14 +8,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AccountTest {
 
+
+    @Test
+    void EmptyParamsAccountIsRejected() {
+        assertThrows(NullPointerException.class, () -> new Account(null, Currency.USD));
+        assertThrows(NullPointerException.class, () -> new Account("a1", null));
+    }
+
     @Test
     void newAccountStartsAtZero() {
-        //Arrange
         Account account = new Account("a1", Currency.USD);
 
-        //Act
-
-        //Asset
         assertEquals(0, account.getBalance().compareTo(BigDecimal.ZERO));
     }
 

@@ -4,5 +4,5 @@ public enum Currency {
     USD(),
     JPY(),
     THB(),
-    HKD();
+    HKD()
 }
