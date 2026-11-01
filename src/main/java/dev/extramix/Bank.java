@@ -34,11 +34,7 @@ public class Bank {
             BigDecimal convertedAmount = amount;
             if (currency != account.getCurrency()) {
                 BigDecimal usdAmount = toUSD(currency, amount);
-                if (account.getCurrency() != Currency.USD) {
-                    convertedAmount = fromUSD(account.getCurrency(), usdAmount);
-                } else {
-                    convertedAmount = usdAmount.setScale(2, RoundingMode.HALF_UP);
-                }
+                convertedAmount = fromUSD(account.getCurrency(), usdAmount);
             }
             account.credit(convertedAmount);
         }
