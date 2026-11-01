@@ -1,7 +1,6 @@
 package dev.extramix;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,8 +32,8 @@ public class Bank {
             Account account = requireAccount(id);
             BigDecimal convertedAmount = amount;
             if (currency != account.getCurrency()) {
-                BigDecimal usdAmount = toUSD(currency, amount);
-                convertedAmount = fromUSD(account.getCurrency(), usdAmount);
+                BigDecimal usdAmount = currency.toUSD(amount);
+                convertedAmount = account.getCurrency().fromUSD(usdAmount);
             }
             account.credit(convertedAmount);
         }
@@ -45,15 +44,6 @@ public class Bank {
             throw new IllegalArgumentException("cannot withdraw with different currency");
         }
         account.debit(amount);
-    }
-
-
-    private BigDecimal toUSD(Currency currency, BigDecimal amount) {
-        return amount.multiply(currency.rateToUsd());
-    }
-
-    private BigDecimal fromUSD(Currency currency, BigDecimal amount) {
-        return amount.divide(currency.rateToUsd(), 2, RoundingMode.HALF_UP);
     }
 
 

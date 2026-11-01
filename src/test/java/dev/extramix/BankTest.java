@@ -114,7 +114,7 @@ class BankTest {
         }
 
         @Test
-        void depositNegativeAmountWithForeignCurrencyToUnknownAccountIsRejected() {
+        void depositWithForeignCurrencyToUnknownAccountIsRejected() {
             Bank bank = new Bank();
             Account account = bank.openAccount("a1", Currency.USD);
 
@@ -132,7 +132,7 @@ class BankTest {
 
 
         @ParameterizedTest
-        @CsvSource({"JPY, 10000, 67.00", "THB, 10000, 290", "HKD, 777, 101.01", "USD, 10000, 10000"})
+        @CsvSource({"JPY, 10000, 67.00", "THB, 10000, 290", "HKD, 777, 101.01", "USD, 10000, 10000", "THB, 0.25, 0.01"})
         void convertsToUsd(Currency source, String amount, String expected) {
             Bank bank = new Bank();
             Account account = bank.openAccount("a1", Currency.USD);

@@ -1,6 +1,7 @@
 package dev.extramix;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public enum Currency {
     USD("1"),
@@ -16,5 +17,13 @@ public enum Currency {
 
     public BigDecimal rateToUsd() {
         return rate;
+    }
+
+    public BigDecimal toUSD(BigDecimal amount) {
+        return amount.multiply(this.rateToUsd());
+    }
+
+    public BigDecimal fromUSD(BigDecimal amount) {
+        return amount.divide(this.rateToUsd(), 2, RoundingMode.HALF_UP);
     }
 }
