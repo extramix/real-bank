@@ -1,6 +1,7 @@
 package dev.extramix;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,19 +30,34 @@ public class Bank {
     }
 
     public void deposit(String id, BigDecimal amount, Currency currency) {
-        Account account = requireAccount(id);
-        if (currency != account.getCurrency()) {
-            throw new IllegalArgumentException("currency mismatch");
+            Account account = requireAccount(id);
+            BigDecimal convertedAmount = amount;
+            if (currency != account.getCurrency()) {
+                BigDecimal usdAmount = toUSD(currency, amount);
+                if (account.getCurrency() != Currency.USD) {
+                    convertedAmount = fromUSD(account.getCurrency(), usdAmount);
+                } else {
+                    convertedAmount = usdAmount.setScale(2, RoundingMode.HALF_UP);
+                }
+            }
+            account.credit(convertedAmount);
         }
-        account.credit(amount);
-    }
 
     public void withdraw(String id, BigDecimal amount, Currency currency) {
         Account account = requireAccount(id);
         if (currency != account.getCurrency()) {
-            throw new IllegalArgumentException("currency mismatch");
+            throw new IllegalArgumentException("cannot withdraw with different currency");
         }
         account.debit(amount);
+    }
+
+
+    private BigDecimal toUSD(Currency currency, BigDecimal amount) {
+        return amount.multiply(currency.rateToUsd());
+    }
+
+    private BigDecimal fromUSD(Currency currency, BigDecimal amount) {
+        return amount.divide(currency.rateToUsd(), 2, RoundingMode.HALF_UP);
     }
 
 
