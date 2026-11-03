@@ -34,22 +34,32 @@ public class Account {
     public void credit(BigDecimal amount) {
         // TODO: this only works in one thread because the balance could move between the read and act time.
         requirePositive(amount);
-        balance = balance.add(amount);
+        BigDecimal trimmedAmount = amount.stripTrailingZeros();
+        requirePrecision(trimmedAmount);
+        balance = balance.add(trimmedAmount);
     }
 
     public void debit(BigDecimal amount) {
         requirePositive(amount);
         // TODO: this only works in one thread because the balance could move between the read and act time.
-        if(balance.compareTo(amount) < 0) {
+        if (balance.compareTo(amount) < 0) {
             throw new IllegalStateException("insufficient funds");
         }
-        balance = balance.subtract(amount);
+        BigDecimal trimmedAmount = amount.stripTrailingZeros();
+        requirePrecision(trimmedAmount);
+        balance = balance.subtract(trimmedAmount);
     }
 
     private void requirePositive(BigDecimal amount) {
         Objects.requireNonNull(amount, "amount is required");
-        if(amount.signum() <= 0) {
+        if (amount.signum() <= 0) {
             throw new IllegalArgumentException("amount must be positive");
+        }
+    }
+
+    private void requirePrecision(BigDecimal amount) {
+        if (amount.scale() > Currency.SCALE) {
+            throw new IllegalArgumentException("too many precisions");
         }
     }
 }
