@@ -29,14 +29,14 @@ public class Bank {
     }
 
     public void deposit(String id, BigDecimal amount, Currency currency) {
-            Account account = requireAccount(id);
-            BigDecimal convertedAmount = amount;
-            if (currency != account.getCurrency()) {
-                BigDecimal usdAmount = currency.toUSD(amount);
-                convertedAmount = account.getCurrency().fromUSD(usdAmount);
-            }
-            account.credit(convertedAmount);
+        Account account = requireAccount(id);
+        BigDecimal convertedAmount = amount;
+        if (currency != account.getCurrency()) {
+            BigDecimal usdAmount = currency.toUSD(amount);
+            convertedAmount = account.getCurrency().fromUSD(usdAmount).setScale(Currency.SCALE, Currency.ROUNDING_MODE);
         }
+        account.credit(convertedAmount);
+    }
 
     public void withdraw(String id, BigDecimal amount, Currency currency) {
         Account account = requireAccount(id);
@@ -44,6 +44,22 @@ public class Bank {
             throw new IllegalArgumentException("cannot withdraw with different currency");
         }
         account.debit(amount);
+    }
+
+    public void transfer(String fromId, String toId, BigDecimal amount) {
+        Account sender = requireAccount(fromId);
+        Account recipient = requireAccount(toId);
+
+        if (fromId.equals(toId)) {
+            throw new IllegalArgumentException("currency mismatch");
+        }
+
+        if (sender.getCurrency() != recipient.getCurrency()) {
+            throw new IllegalStateException("currency mismatch");
+        }
+
+        sender.debit(amount);
+        recipient.credit(amount);
     }
 
 

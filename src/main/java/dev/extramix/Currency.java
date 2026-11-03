@@ -9,10 +9,17 @@ public enum Currency {
     THB("0.029"),
     HKD("0.13");
 
+    final static int SCALE = 2;
+    final static RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
+
     private final BigDecimal rate;
 
     Currency(String rate) {
         this.rate = new BigDecimal(rate);
+    }
+
+    public static BigDecimal round(BigDecimal amount) {
+        return amount.setScale(SCALE, ROUNDING_MODE);
     }
 
     public BigDecimal rateToUsd() {
@@ -24,6 +31,6 @@ public enum Currency {
     }
 
     public BigDecimal fromUSD(BigDecimal amount) {
-        return amount.divide(this.rateToUsd(), 2, RoundingMode.HALF_UP);
+        return amount.divide(this.rateToUsd(), SCALE, ROUNDING_MODE);
     }
 }

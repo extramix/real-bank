@@ -7,7 +7,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BankTest {
 
@@ -81,6 +82,17 @@ class BankTest {
 
             assertEquals(0, account1.getBalance().compareTo(BigDecimal.ZERO));
             assertEquals(0, account2.getBalance().compareTo(new BigDecimal("100")));
+        }
+
+        // A USD account starts with 100.
+        // Depositing 1.005 USD is rejected.
+        //Its balance remains 100.
+        @Test
+        void depositFractionAmountOverScaleIsRejectedAndBalanceUnchanged() {
+            Bank bank = new Bank();
+            Account account = bank.openAccount("a1", Currency.USD);
+            assertThrows(IllegalArgumentException.class, () -> bank.deposit(account.getId(), new BigDecimal("1.005"), Currency.USD));
+            assertBalance("0", account);
         }
     }
 
@@ -202,4 +214,82 @@ class BankTest {
             assertEquals(0, account.getBalance().compareTo(new BigDecimal("100")));
         }
     }
+
+    @Nested
+    class Transfer {
+//        Bank.transfer(fromId, toId, amount)
+//        same currency only: reject if different
+//        exact amount leaves and go in target account
+//        unknown accounts transfer should reject and the balance shouldn't move
+//        one pass-through check with non-negative amount
+//        self transfer is rejected
+
+        @Test
+        void transferToAnotherAccountWithSameCurrency() {
+            Bank bank = new Bank();
+            Account a1 = bank.openAccount("a1", Currency.USD);
+            Account a2 = bank.openAccount("a2", Currency.USD);
+            bank.deposit(a1.getId(), new BigDecimal("100"), Currency.USD);
+
+            bank.transfer("a1", "a2", new BigDecimal("100"));
+            assertBalance("100", a2);
+        }
+
+        @Test
+        void transferDifferentCurrencyIsRejected() {
+            Bank bank = new Bank();
+            Account a1 = bank.openAccount("a1", Currency.USD);
+            Account a2 = bank.openAccount("a2", Currency.THB);
+            bank.deposit(a1.getId(), new BigDecimal("100"), Currency.USD);
+
+            assertThrows(IllegalStateException.class, () -> bank.transfer("a1", "a2", new BigDecimal("100")));
+            assertBalance("100", a1);
+
+
+        }
+
+        @Test
+        void transferFromUnknownAccountIsRejectedAndBalancesAreUnchanged() {
+            Bank bank = new Bank();
+            Account a1 = bank.openAccount("a1", Currency.USD);
+            bank.deposit(a1.getId(), new BigDecimal("100"), Currency.USD);
+
+            assertThrows(IllegalArgumentException.class, () -> bank.transfer("a1", "a99", new BigDecimal("100")));
+            assertBalance("100", a1);
+        }
+
+        @Test
+        void transferToUnknownAccountIsRejectedAndBalancesAreUnchanged() {
+            Bank bank = new Bank();
+            Account a2 = bank.openAccount("a2", Currency.USD);
+            bank.deposit(a2.getId(), new BigDecimal("100"), Currency.USD);
+
+            assertThrows(IllegalArgumentException.class, () -> bank.transfer("a99", "a2", new BigDecimal("100")));
+            assertBalance("100", a2);
+        }
+
+        @Test
+        void nonPositiveAmountIsRejected() {
+            Bank bank = new Bank();
+            Account a1 = bank.openAccount("a1", Currency.USD);
+            Account a2 = bank.openAccount("a2", Currency.USD);
+            bank.deposit(a1.getId(), new BigDecimal("100"), Currency.USD);
+
+            assertThrows(IllegalArgumentException.class, () -> bank.transfer("a1", "a2", new BigDecimal("-1")));
+            assertBalance("100", a1);
+        }
+
+        @Test
+        void selfTransferIsRejected() {
+            Bank bank = new Bank();
+            Account a1 = bank.openAccount("a1", Currency.USD);
+            bank.deposit(a1.getId(), new BigDecimal("100"), Currency.USD);
+
+            assertThrows(IllegalArgumentException.class, () -> bank.transfer("a1", "a1", new BigDecimal("70")));
+            assertBalance("100", a1);
+        }
+
+    }
 }
+
+
