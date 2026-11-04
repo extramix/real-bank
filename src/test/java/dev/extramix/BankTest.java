@@ -6,9 +6,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class BankTest {
 
@@ -287,6 +289,65 @@ class BankTest {
 
             assertThrows(IllegalArgumentException.class, () -> bank.transfer("a1", "a1", new BigDecimal("70")));
             assertBalance("100", a1);
+        }
+
+        @Test
+        void shouldOnlyAllowOneTransferForConcurrentRequests() throws InterruptedException, ExecutionException, TimeoutException {
+            Bank bank = new Bank();
+
+            Account a1 = bank.openAccount("a1", Currency.USD);
+            Account a2 = bank.openAccount("a2", Currency.USD);
+            Account a3 = bank.openAccount("a3", Currency.USD);
+
+            bank.deposit(a1.getId(), new BigDecimal("100"), Currency.USD);
+
+            int threadCount = 2;
+            try (ExecutorService executor = Executors.newFixedThreadPool(threadCount)) {
+
+                CountDownLatch ready = new CountDownLatch(threadCount);
+                CountDownLatch start = new CountDownLatch(1);
+
+                List<Future<?>> futures = new ArrayList<>();
+                for (int i = 0; i < threadCount; i++) {
+                    String recipientId = "a" + (i + 2);
+                    futures.add(executor.submit(() -> {
+                        ready.countDown();
+                        try {
+                            start.await();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            throw new RuntimeException("Transfer task interrupted while waiting", e);
+                        }
+                        bank.transfer("a1", recipientId, new BigDecimal("80"));
+                    }));
+                }
+                try {
+                    assertTrue(ready.await(5, TimeUnit.SECONDS));
+                } finally {
+                    start.countDown();
+                }
+                int successCount = 0;
+                int rejectCount = 0;
+                for (Future<?> future : futures) {
+                    try {
+                        future.get(5, TimeUnit.SECONDS);
+                        successCount++;
+                    } catch (ExecutionException e) {
+                        Throwable cause = e.getCause();
+                        if (cause instanceof IllegalStateException) {
+                            rejectCount++;
+                        } else {
+                            throw e;
+                        }
+                    }
+                }
+                assertEquals(1, successCount);
+                assertEquals(1, rejectCount);
+                assertBalance("20", a1);
+                BigDecimal received = a2.getBalance().add(a3.getBalance());
+                assertEquals(0, received.compareTo(new BigDecimal("80")));
+
+            }
         }
 
     }

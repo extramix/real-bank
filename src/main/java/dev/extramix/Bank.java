@@ -58,8 +58,10 @@ public class Bank {
             throw new IllegalStateException("currency mismatch");
         }
 
-        sender.debit(amount);
-        recipient.credit(amount);
+        synchronized (this) {
+            sender.debit(amount);
+            recipient.credit(amount);
+        }
     }
 
 
