@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,6 +19,9 @@ class BankTest {
         BigDecimal expectedAmount = new BigDecimal(expected);
         assertEquals(0, account.getBalance().compareTo(expectedAmount),
                 () -> "expected balance " + expectedAmount + " but was " + account.getBalance());
+    }
+
+    private record Outcome(int successCount, int rejectCount) {
     }
 
     @Nested
@@ -291,36 +295,27 @@ class BankTest {
             assertBalance("100", a1);
         }
 
-        @Test
-        void shouldOnlyAllowOneTransferForConcurrentRequests() throws InterruptedException, ExecutionException, TimeoutException {
-            Bank bank = new Bank();
+        Outcome runConcurrently(List<Runnable> operations, Consumer<Throwable> assertExpectedFailures)
+                throws InterruptedException, TimeoutException {
 
-            Account a1 = bank.openAccount("a1", Currency.USD);
-            Account a2 = bank.openAccount("a2", Currency.USD);
-            Account a3 = bank.openAccount("a3", Currency.USD);
-
-            bank.deposit(a1.getId(), new BigDecimal("100"), Currency.USD);
-
-            int threadCount = 2;
-            try (ExecutorService executor = Executors.newFixedThreadPool(threadCount)) {
-
-                CountDownLatch ready = new CountDownLatch(threadCount);
+            try (ExecutorService executor = Executors.newFixedThreadPool(operations.size())) {
+                CountDownLatch ready = new CountDownLatch(operations.size());
                 CountDownLatch start = new CountDownLatch(1);
-
                 List<Future<?>> futures = new ArrayList<>();
-                for (int i = 0; i < threadCount; i++) {
-                    String recipientId = "a" + (i + 2);
+                for (Runnable operation : operations) {
                     futures.add(executor.submit(() -> {
                         ready.countDown();
                         try {
+
                             start.await();
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
-                            throw new RuntimeException("Transfer task interrupted while waiting", e);
+                            throw new RuntimeException(e);
                         }
-                        bank.transfer("a1", recipientId, new BigDecimal("80"));
+                        operation.run();
                     }));
                 }
+
                 try {
                     assertTrue(ready.await(5, TimeUnit.SECONDS));
                 } finally {
@@ -334,23 +329,39 @@ class BankTest {
                         successCount++;
                     } catch (ExecutionException e) {
                         Throwable cause = e.getCause();
-                        if (cause instanceof IllegalStateException) {
-                            rejectCount++;
-                        } else {
-                            throw e;
-                        }
+                        assertExpectedFailures.accept(cause);
+                        rejectCount++;
                     }
                 }
-                assertEquals(1, successCount);
-                assertEquals(1, rejectCount);
-                assertBalance("20", a1);
-                BigDecimal received = a2.getBalance().add(a3.getBalance());
-                assertEquals(0, received.compareTo(new BigDecimal("80")));
 
+                return new Outcome(successCount, rejectCount);
             }
         }
 
+        @Test
+        void shouldOnlyAllowOneTransferForConcurrentRequests() throws InterruptedException, ExecutionException, TimeoutException {
+            Bank bank = new Bank();
+
+            Account a1 = bank.openAccount("a1", Currency.USD);
+            Account a2 = bank.openAccount("a2", Currency.USD);
+            Account a3 = bank.openAccount("a3", Currency.USD);
+
+            bank.deposit(a1.getId(), new BigDecimal("100"), Currency.USD);
+            List<Runnable> operations = List.of(
+                    () -> bank.transfer("a1", "a2", new BigDecimal("80")),
+                    () -> bank.transfer("a1", "a3", new BigDecimal("80")));
+
+            Outcome outcome = runConcurrently(operations, cause -> assertInstanceOf(IllegalStateException.class, cause));
+
+            assertEquals(1, outcome.successCount);
+            assertEquals(1, outcome.rejectCount);
+            assertBalance("20", a1);
+            BigDecimal received = a2.getBalance().add(a3.getBalance());
+            assertEquals(0, received.compareTo(new BigDecimal("80")));
+
+        }
     }
+
 }
 
 
