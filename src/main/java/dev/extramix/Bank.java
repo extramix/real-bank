@@ -51,14 +51,17 @@ public class Bank {
         Account recipient = requireAccount(toId);
 
         if (fromId.equals(toId)) {
-            throw new IllegalArgumentException("currency mismatch");
+            throw new IllegalArgumentException("self transfer not allowed");
         }
 
         if (sender.getCurrency() != recipient.getCurrency()) {
-            throw new IllegalStateException("currency mismatch");
+            throw new IllegalArgumentException("currency mismatch");
         }
-
+        
         synchronized (this) {
+            if (sender.getBalance().compareTo(amount) < 0) {
+                throw new IllegalStateException("insufficient balance");
+            }
             sender.debit(amount);
             recipient.credit(amount);
         }

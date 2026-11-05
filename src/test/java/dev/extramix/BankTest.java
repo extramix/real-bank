@@ -248,14 +248,14 @@ class BankTest {
             Account a2 = bank.openAccount("a2", Currency.THB);
             bank.deposit(a1.getId(), new BigDecimal("100"), Currency.USD);
 
-            assertThrows(IllegalStateException.class, () -> bank.transfer("a1", "a2", new BigDecimal("100")));
+            assertThrows(IllegalArgumentException.class, () -> bank.transfer("a1", "a2", new BigDecimal("100")));
             assertBalance("100", a1);
 
 
         }
 
         @Test
-        void transferFromUnknownAccountIsRejectedAndBalancesAreUnchanged() {
+        void transferToUnknownAccountIsRejectedAndBalancesAreUnchanged() {
             Bank bank = new Bank();
             Account a1 = bank.openAccount("a1", Currency.USD);
             bank.deposit(a1.getId(), new BigDecimal("100"), Currency.USD);
@@ -265,7 +265,7 @@ class BankTest {
         }
 
         @Test
-        void transferToUnknownAccountIsRejectedAndBalancesAreUnchanged() {
+        void transferFromUnknownAccountIsRejectedAndBalancesAreUnchanged() {
             Bank bank = new Bank();
             Account a2 = bank.openAccount("a2", Currency.USD);
             bank.deposit(a2.getId(), new BigDecimal("100"), Currency.USD);
@@ -293,6 +293,18 @@ class BankTest {
 
             assertThrows(IllegalArgumentException.class, () -> bank.transfer("a1", "a1", new BigDecimal("70")));
             assertBalance("100", a1);
+        }
+
+        @Test
+        void insufficientFundTransferIsRejected() {
+            Bank bank = new Bank();
+            Account a1 = bank.openAccount("a1", Currency.USD);
+            Account a2 = bank.openAccount("a2", Currency.USD);
+            bank.deposit(a1.getId(), new BigDecimal("100"), Currency.USD);
+
+            assertThrows(IllegalStateException.class, () -> bank.transfer("a1", "a2", new BigDecimal("101")));
+            assertBalance("100", a1);
+            assertBalance("0", a2);
         }
 
         Outcome runConcurrently(List<Runnable> operations, Consumer<Throwable> assertExpectedFailures)
