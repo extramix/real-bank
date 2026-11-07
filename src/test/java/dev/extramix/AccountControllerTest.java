@@ -23,8 +23,8 @@ class AccountControllerTest {
     @Test
     void createAccount() throws Exception {
         OpenAccountRequest payload = new OpenAccountRequest("a1", Currency.USD);
-        mockMvc.perform(post("/account").contentType(MediaType.APPLICATION_JSON)
-                                        .content(jsonMapper.writeValueAsString(payload)))
+        mockMvc.perform(post("/accounts").contentType(MediaType.APPLICATION_JSON)
+                                         .content(jsonMapper.writeValueAsString(payload)))
                .andExpect(status().isCreated())
                .andExpect(jsonPath("$.id").value("a1"))
                .andExpect(jsonPath("$.currency").value("USD"))

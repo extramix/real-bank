@@ -15,7 +15,7 @@ public class AccountController {
         this.bank = bank;
     }
 
-    @PostMapping("/account")
+    @PostMapping("/accounts")
     public ResponseEntity<AccountResponse> createAccount(@Valid @RequestBody OpenAccountRequest openAccountRequest) {
         Account account = bank.openAccount(openAccountRequest.id(),
                 openAccountRequest.currency());
