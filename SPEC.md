@@ -1,4 +1,4 @@
-# Real Bank — Stage 1 specification
+# Banking app specification
 
 Build a small banking domain to practice Java, test design, and debugging on code you write yourself. Use Java 21, Maven, and JUnit 5 (`junit-jupiter`). Store accounts in memory.
 
@@ -73,4 +73,62 @@ Each successful balance change appends one entry to the affected account's histo
 - Explain the choice of `BigDecimal`, the rounding policy, and the transfer guarantees and their limits in the README.
 - Be able to reproduce and investigate a test failure in the debugger.
 
-Stage 2 can build on this domain and its behavioral tests with Spring Boot, an API, and persistent storage.
+## Stage 2 — Spring Boot
+
+Build on the existing banking domain and its behavioral tests in this repository. The goal is to understand how an HTTP
+request reaches the bank, then learn persistence, database transactions, and API reliability one milestone at a time.
+
+Keep the same learning approach. You write the implementation and tests, while the assistant reviews, explains, and
+helps with debugging. Agree on each milestone's detailed contract before implementing it.
+
+### B0 — Start the web application
+
+- Adapt the existing Maven project using Spring Initializr as a reference. Use Java 21 and Spring Web, with a stable
+  Spring Boot release that supports Java 21.
+- Start the application and implement `GET /hello`, returning a simple greeting.
+- Explain the roles of `@SpringBootApplication`, `@RestController`, and `@GetMapping`, and follow one request from the
+  browser to the Java method and back.
+- Add an HTTP test for the greeting and confirm the existing banking tests still run and pass.
+
+Done when the greeting works through HTTP and you can explain how it reached the method.
+
+### B1 — Open and retrieve accounts through HTTP
+
+- Register the bank with Spring and use constructor injection so requests share the same bank instance.
+- Add `POST /accounts` and `GET /accounts/{id}`. Define request and response DTOs and agree on status codes before
+  writing the endpoints.
+- Reuse the existing account and money rules. Keep banking decisions in the domain or service layer.
+- Test opening an account, retrieving its zero balance and currency, duplicate IDs, invalid input, and unknown accounts.
+
+Done when an account opened through one HTTP request can be retrieved through another.
+
+### B2 — Expose the remaining banking operations
+
+- Add deposits, withdrawals, transfers, and account statements one operation at a time, agreeing on each HTTP contract
+  before writing its controller.
+- Translate validation failures and domain rejections into consistent HTTP responses.
+- Preserve conversion, rounding, failed-operation, and history behavior with tests through the API.
+- Define and test a shared concurrency rule for requests that read or change balances and history. The Stage 1 transfer
+  lock currently covers competing transfers on one bank instance.
+
+### B3 — Add persistent storage
+
+- Introduce PostgreSQL, Spring Data JPA, and Flyway migrations. Keep existing behavioral tests as regression coverage,
+  adapting their setup where necessary.
+- Persist accounts and history so they survive an application restart.
+- Use database transactions to commit a transfer's balance changes and history together. Test rollback on failure.
+- Add optimistic locking and verify that competing updates cannot overdraw an account or lose changes.
+- Use Testcontainers for integration tests against PostgreSQL.
+
+### B4 — Handle retries and access control
+
+- Add an idempotent transfer endpoint. Retrying the same request must not move money or append history twice, including
+  concurrent retries. Agree on key reuse and conflicting-payload behavior before implementing it.
+- Add JWT authentication and account ownership checks, with tests for permitted and rejected access.
+
+### B5 — Package and explain the application
+
+- Add Docker support and document how to run the application, database, and tests.
+- Document the HTTP API, persistence model, rounding rules, transaction boundaries, concurrency behavior, and known limits.
+
+The immediate next task is B0. Later milestones are a roadmap and will get more detailed acceptance criteria when reached.
