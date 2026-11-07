@@ -23,9 +23,11 @@ represent 1 cent for USD. Long can work with multiple currencies too, as long as
 units. But for this app, I find BigDecimal easier to manage when converting currencies and deciding how to round.
 
 I also round the amount ONLY when currency conversion happens, using HALF_UP to 2 decimal places. Amounts credited to
-or debited from an account must fit within 2 decimal places. A foreign deposit can start with more decimal places,
-since we convert and round it before crediting the account.
+or debited from an accountService must fit within 2 decimal places. A foreign deposit can start with more decimal
+places,
+since we convert and round it before crediting the accountService.
 
 The transfer lock is there to protect against multithreading issues. At this time, it makes transfers on the same Bank
-instance take turns. Deposits, withdrawals, and direct account access can still happen during a transfer, and I aim to
+instance take turns. Deposits, withdrawals, and direct accountService access can still happen during a transfer, and I
+aim to
 improve that later!
