@@ -1,4 +1,4 @@
-package dev.extramix;
+package dev.extramix.bank;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,8 @@ class BankTest {
 
     private void assertBalance(String expected, Account account) {
         BigDecimal expectedAmount = new BigDecimal(expected);
-        assertEquals(0, account.getBalance().compareTo(expectedAmount),
+        assertEquals(0, account.getBalance()
+                               .compareTo(expectedAmount),
                 () -> "expected balance " + expectedAmount + " but was " + account.getBalance());
     }
 
@@ -34,7 +35,8 @@ class BankTest {
             Account account = bank.openAccount("a1", Currency.USD);
 
             assertEquals("a1", account.getId());
-            assertEquals(0, account.getBalance().compareTo(BigDecimal.ZERO));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(BigDecimal.ZERO));
             assertEquals(Currency.USD, account.getCurrency());
         }
 
@@ -44,7 +46,8 @@ class BankTest {
             Account account = bank.openAccount("a1", Currency.USD);
             bank.deposit(account.getId(), new BigDecimal("100"), Currency.USD);
 
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("100")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("100")));
         }
 
         @Test
@@ -54,7 +57,8 @@ class BankTest {
             bank.deposit(account.getId(), new BigDecimal("100"), Currency.USD);
 
             assertThrows(IllegalStateException.class, () -> bank.openAccount("a1", Currency.THB));
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("100")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("100")));
             assertEquals(Currency.USD, account.getCurrency());
         }
     }
@@ -86,8 +90,10 @@ class BankTest {
 
             bank.deposit("a2", new BigDecimal("100"), Currency.USD);
 
-            assertEquals(0, account1.getBalance().compareTo(BigDecimal.ZERO));
-            assertEquals(0, account2.getBalance().compareTo(new BigDecimal("100")));
+            assertEquals(0, account1.getBalance()
+                                    .compareTo(BigDecimal.ZERO));
+            assertEquals(0, account2.getBalance()
+                                    .compareTo(new BigDecimal("100")));
         }
 
         // A USD account starts with 100.
@@ -180,7 +186,8 @@ class BankTest {
             bank.deposit(account.getId(), new BigDecimal("100"), Currency.USD);
             bank.withdraw(account.getId(), new BigDecimal("40"), Currency.USD);
 
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("60")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("60")));
         }
 
         @Test
@@ -217,7 +224,8 @@ class BankTest {
             bank.deposit(account.getId(), new BigDecimal("100"), Currency.USD);
 
             assertThrows(IllegalStateException.class, () -> bank.withdraw(account.getId(), new BigDecimal("101"), Currency.USD));
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("100")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("100")));
         }
     }
 
@@ -333,7 +341,8 @@ class BankTest {
 
                             start.await();
                         } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
+                            Thread.currentThread()
+                                  .interrupt();
                             throw new RuntimeException(e);
                         }
                         operation.run();
@@ -380,7 +389,8 @@ class BankTest {
             assertEquals(1, outcome.successCount);
             assertEquals(1, outcome.rejectCount);
             assertBalance("20", a1);
-            BigDecimal received = a2.getBalance().add(a3.getBalance());
+            BigDecimal received = a2.getBalance()
+                                    .add(a3.getBalance());
             assertEquals(0, received.compareTo(new BigDecimal("80")));
 
         }

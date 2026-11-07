@@ -1,4 +1,4 @@
-package dev.extramix;
+package dev.extramix.bank;
 
 import org.springframework.stereotype.Service;
 
@@ -57,7 +57,8 @@ public class Bank {
 
     private BigDecimal convert(BigDecimal sourceAmount, Currency sourceCurrency, Currency destinationCurrency) {
         BigDecimal usdAmount = sourceCurrency.toUSD(sourceAmount);
-        return destinationCurrency.fromUSD(usdAmount).setScale(Currency.SCALE, Currency.ROUNDING_MODE);
+        return destinationCurrency.fromUSD(usdAmount)
+                                  .setScale(Currency.SCALE, Currency.ROUNDING_MODE);
     }
 
     public void transfer(String fromId, String toId, BigDecimal amount) {
@@ -76,7 +77,8 @@ public class Bank {
         }
 
         synchronized (this) {
-            if (sender.getBalance().compareTo(amount) < 0) {
+            if (sender.getBalance()
+                      .compareTo(amount) < 0) {
                 throw new IllegalStateException("insufficient balance");
             }
             sender.debit(amount);
@@ -94,7 +96,8 @@ public class Bank {
     }
 
     private void appendHistory(String id, Transaction transaction) {
-        history.computeIfAbsent(id, k -> new ArrayList<>()).add(transaction);
+        history.computeIfAbsent(id, k -> new ArrayList<>())
+               .add(transaction);
     }
 
 

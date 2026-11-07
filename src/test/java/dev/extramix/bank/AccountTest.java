@@ -1,4 +1,4 @@
-package dev.extramix;
+package dev.extramix.bank;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,8 @@ class AccountTest {
         void newAccountStartsAtZero() {
             Account account = new Account("a1", Currency.USD);
 
-            assertEquals(0, account.getBalance().compareTo(BigDecimal.ZERO));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(BigDecimal.ZERO));
         }
 
         @Test
@@ -46,7 +47,8 @@ class AccountTest {
             account.credit(new BigDecimal("150"));
 
 
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("250")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("250")));
         }
 
         @Test
@@ -55,7 +57,8 @@ class AccountTest {
             account.credit(new BigDecimal("100"));
 
             assertThrows(IllegalArgumentException.class, () -> account.credit(new BigDecimal("0")));
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("100")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("100")));
         }
 
         @Test
@@ -64,7 +67,8 @@ class AccountTest {
             account.credit(new BigDecimal("100"));
 
             assertThrows(IllegalArgumentException.class, () -> account.credit(new BigDecimal("-1")));
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("100")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("100")));
         }
 
         @Test
@@ -73,7 +77,8 @@ class AccountTest {
             account.credit(new BigDecimal("100"));
 
             assertThrows(NullPointerException.class, () -> account.credit(null));
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("100")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("100")));
         }
 
         @Test
@@ -81,7 +86,8 @@ class AccountTest {
             Account account = new Account("a1", Currency.USD);
 
             assertThrows(IllegalArgumentException.class, () -> account.credit(new BigDecimal("0.001")));
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("0")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("0")));
         }
 
         @ParameterizedTest
@@ -89,7 +95,8 @@ class AccountTest {
         void creditAcceptsWholeCentAmounts(String amount, String expected) {
             Account account = new Account("a1", Currency.USD);
             account.credit(new BigDecimal(amount));
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal(expected)));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal(expected)));
         }
     }
 
@@ -103,7 +110,8 @@ class AccountTest {
 
             account.debit(new BigDecimal("30"));
 
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("70")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("70")));
 
         }
 
@@ -114,7 +122,8 @@ class AccountTest {
 
             account.debit(new BigDecimal("100"));
 
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("0")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("0")));
         }
 
         @Test
@@ -124,7 +133,8 @@ class AccountTest {
 
             assertThrows(IllegalStateException.class, () -> account.debit(new BigDecimal("101")));
 
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("100")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("100")));
 
         }
 
@@ -135,7 +145,8 @@ class AccountTest {
 
             assertThrows(IllegalArgumentException.class, () -> account.debit(new BigDecimal("-1")));
 
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("100")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("100")));
         }
 
         @Test
@@ -145,7 +156,8 @@ class AccountTest {
 
             assertThrows(IllegalArgumentException.class, () -> account.debit(new BigDecimal("0")));
 
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("100")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("100")));
         }
 
         @Test
@@ -155,7 +167,8 @@ class AccountTest {
 
             account.debit(new BigDecimal("50.50"));
 
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("49.50")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("49.50")));
         }
 
         @Test
@@ -164,7 +177,8 @@ class AccountTest {
             account.credit(new BigDecimal("100"));
 
             assertThrows(NullPointerException.class, () -> account.debit(null));
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("100")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("100")));
         }
 
         @Test
@@ -174,7 +188,8 @@ class AccountTest {
 
 
             assertThrows(IllegalArgumentException.class, () -> account.debit(new BigDecimal("0.001")));
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal("100")));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal("100")));
         }
 
         @ParameterizedTest
@@ -184,7 +199,8 @@ class AccountTest {
             account.credit(new BigDecimal("100"));
             account.debit(new BigDecimal(amount));
 
-            assertEquals(0, account.getBalance().compareTo(new BigDecimal(expected)));
+            assertEquals(0, account.getBalance()
+                                   .compareTo(new BigDecimal(expected)));
         }
     }
 }

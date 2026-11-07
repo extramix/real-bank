@@ -1,5 +1,7 @@
-package dev.extramix;
+package dev.extramix.web;
 
+import dev.extramix.bank.Bank;
+import dev.extramix.bank.Currency;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;

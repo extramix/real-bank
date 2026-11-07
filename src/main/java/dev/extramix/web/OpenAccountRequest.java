@@ -1,5 +1,6 @@
-package dev.extramix;
+package dev.extramix.web;
 
+import dev.extramix.bank.Currency;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 

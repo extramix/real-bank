@@ -1,4 +1,4 @@
-package dev.extramix;
+package dev.extramix.web;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +17,7 @@ class HelloControllerTest {
     @Test
     void greeting() throws Exception {
         mockMvc.perform(get("/hello"))
-               .andExpect(status().isOk()).andExpect(content().string("Greeting!"));
+               .andExpect(status().isOk())
+               .andExpect(content().string("Greeting!"));
     }
 }

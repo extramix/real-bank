@@ -1,4 +1,4 @@
-package dev.extramix;
+package dev.extramix.bank;
 
 public enum TransactionType {
     DEPOSIT,

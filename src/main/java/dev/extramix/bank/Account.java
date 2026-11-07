@@ -1,4 +1,4 @@
-package dev.extramix;
+package dev.extramix.bank;
 
 import java.math.BigDecimal;
 import java.util.Objects;

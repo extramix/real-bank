@@ -1,5 +1,7 @@
-package dev.extramix;
+package dev.extramix.web;
 
+
+import dev.extramix.bank.Currency;
 
 import java.math.BigDecimal;
 

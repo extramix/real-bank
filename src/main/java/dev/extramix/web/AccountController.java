@@ -1,5 +1,7 @@
-package dev.extramix;
+package dev.extramix.web;
 
+import dev.extramix.bank.Account;
+import dev.extramix.bank.Bank;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
