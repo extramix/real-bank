@@ -32,8 +32,7 @@ public class Bank {
         Account account = requireAccount(id);
         BigDecimal convertedAmount = amount;
         if (currency != account.getCurrency()) {
-            BigDecimal usdAmount = currency.toUSD(amount);
-            convertedAmount = account.getCurrency().fromUSD(usdAmount).setScale(Currency.SCALE, Currency.ROUNDING_MODE);
+            convertedAmount = convert(amount, currency, account.getCurrency());
         }
         account.credit(convertedAmount);
     }
@@ -46,6 +45,11 @@ public class Bank {
         account.debit(amount);
     }
 
+    private BigDecimal convert(BigDecimal sourceAmount, Currency sourceCurrency, Currency destinationCurrency) {
+        BigDecimal usdAmount = sourceCurrency.toUSD(sourceAmount);
+        return destinationCurrency.fromUSD(usdAmount).setScale(Currency.SCALE, Currency.ROUNDING_MODE);
+    }
+
     public void transfer(String fromId, String toId, BigDecimal amount) {
         Account sender = requireAccount(fromId);
         Account recipient = requireAccount(toId);
@@ -53,17 +57,20 @@ public class Bank {
         if (fromId.equals(toId)) {
             throw new IllegalArgumentException("self transfer not allowed");
         }
-
+        BigDecimal toBeTransferredAmount = amount;
         if (sender.getCurrency() != recipient.getCurrency()) {
-            throw new IllegalArgumentException("currency mismatch");
+            toBeTransferredAmount = convert(amount, sender.getCurrency(), recipient.getCurrency());
         }
-        
+        if (toBeTransferredAmount.compareTo(BigDecimal.ZERO) == 0) {
+            throw new IllegalArgumentException("amount is zero after conversion");
+        }
+
         synchronized (this) {
             if (sender.getBalance().compareTo(amount) < 0) {
                 throw new IllegalStateException("insufficient balance");
             }
             sender.debit(amount);
-            recipient.credit(amount);
+            recipient.credit(toBeTransferredAmount);
         }
     }
 

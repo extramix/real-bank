@@ -44,7 +44,7 @@ public class Account {
         BigDecimal trimmedAmount = amount.stripTrailingZeros();
         requirePrecision(trimmedAmount);
         // TODO: this only works in one thread because the balance could move between the read and act time.
-        if (trimmedAmount.compareTo(amount) < 0) {
+        if (balance.compareTo(trimmedAmount) < 0) {
             throw new IllegalStateException("insufficient funds");
         }
         balance = balance.subtract(trimmedAmount);

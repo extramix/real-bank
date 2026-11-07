@@ -242,16 +242,28 @@ class BankTest {
         }
 
         @Test
-        void transferDifferentCurrencyIsRejected() {
+        void transferDifferentCurrency() {
             Bank bank = new Bank();
             Account a1 = bank.openAccount("a1", Currency.USD);
             Account a2 = bank.openAccount("a2", Currency.THB);
             bank.deposit(a1.getId(), new BigDecimal("100"), Currency.USD);
 
-            assertThrows(IllegalArgumentException.class, () -> bank.transfer("a1", "a2", new BigDecimal("100")));
+            // use source currency for the amount
+            bank.transfer("a1", "a2", new BigDecimal("10")); // 10 / 0.029 = 344.83
+            assertBalance("90", a1);
+            assertBalance("344.83", a2);
+        }
+
+        @Test
+        void transferFractionAmountThatConvertsToZeroIsRejectedAndBalancesUnchanged() {
+            Bank bank = new Bank();
+            Account a1 = bank.openAccount("a1", Currency.THB);
+            Account a2 = bank.openAccount("a2", Currency.USD);
+            bank.deposit(a1.getId(), new BigDecimal("100"), Currency.THB);
+
+            assertThrows(IllegalArgumentException.class, () -> bank.transfer("a1", "a2", new BigDecimal("0.01")));
             assertBalance("100", a1);
-
-
+            assertBalance("0", a2);
         }
 
         @Test
