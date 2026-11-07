@@ -28,6 +28,7 @@ public class Bank {
         if (existing != null) {
             throw new IllegalStateException("account with this id already exists");
         }
+        history.computeIfAbsent(id, k -> new ArrayList<>());
         return newAccount;
     }
 
@@ -77,8 +78,8 @@ public class Bank {
             }
             sender.debit(amount);
             recipient.credit(toBeTransferredAmount);
-            appendHistory(recipient.getId(), new Transaction(amount, sender.getCurrency(), sender.getBalance(), TransactionType.TRANSFER_IN));
-            appendHistory(recipient.getId(), new Transaction(toBeTransferredAmount, recipient.getCurrency(), recipient.getBalance(), TransactionType.TRANSFER_OUT));
+            appendHistory(sender.getId(), new Transaction(amount, sender.getCurrency(), sender.getBalance(), TransactionType.TRANSFER_OUT));
+            appendHistory(recipient.getId(), new Transaction(toBeTransferredAmount, recipient.getCurrency(), recipient.getBalance(), TransactionType.TRANSFER_IN));
         }
     }
 
@@ -86,7 +87,7 @@ public class Bank {
         if (!history.containsKey(id)) {
             throw new IllegalArgumentException("account not found");
         }
-        return history.get(id);
+        return List.copyOf(history.get(id));
     }
 
     private void appendHistory(String id, Transaction transaction) {

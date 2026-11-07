@@ -396,14 +396,94 @@ class BankTest {
             bank.deposit(a1.getId(), new BigDecimal("25"), Currency.USD);
 
             List<Transaction> history = bank.getHistory(a1.getId());
-            var entry = history.get(0);
+            var entry = history.getFirst();
             assertEquals(1, history.size());
             assertEquals(TransactionType.DEPOSIT, entry.type());
             assertEquals(Currency.USD, entry.currency());
             assertEquals(new BigDecimal("25"), entry.amount());
             assertEquals(new BigDecimal("25"), entry.balance());
             assertBalance("25", a1);
+        }
 
+        @Test
+        void withdrawCreatesHistory() {
+            Bank bank = new Bank();
+
+            Account a1 = bank.openAccount("a1", Currency.USD);
+            bank.deposit(a1.getId(), new BigDecimal("25"), Currency.USD);
+            bank.withdraw(a1.getId(), new BigDecimal("20"), Currency.USD);
+
+            List<Transaction> history = bank.getHistory(a1.getId());
+            assertEquals(2, history.size());
+
+            var entry = history.get(1);
+            assertEquals(TransactionType.WITHDRAW, entry.type());
+            assertEquals(Currency.USD, entry.currency());
+            assertEquals(new BigDecimal("20"), entry.amount());
+            assertEquals(new BigDecimal("5"), entry.balance());
+            assertBalance("5", a1);
+        }
+
+        @Test
+        void transferCreatesHistory() {
+            Bank bank = new Bank();
+
+            Account a1 = bank.openAccount("a1", Currency.USD);
+            Account a2 = bank.openAccount("a2", Currency.USD);
+            bank.deposit(a1.getId(), new BigDecimal("25"), Currency.USD);
+            bank.transfer(a1.getId(), a2.getId(), new BigDecimal("20"));
+
+            List<Transaction> a1history = bank.getHistory(a1.getId());
+            assertEquals(2, a1history.size());
+
+            Transaction entry1 = a1history.get(1);
+            assertEquals(TransactionType.TRANSFER_OUT, entry1.type());
+            assertEquals(Currency.USD, entry1.currency());
+            assertEquals(new BigDecimal("20"), entry1.amount());
+            assertEquals(new BigDecimal("5"), entry1.balance());
+
+            List<Transaction> a2history = bank.getHistory(a2.getId());
+            Transaction entry2 = a2history.getFirst();
+            assertEquals(1, a2history.size());
+            assertEquals(TransactionType.TRANSFER_IN, entry2.type());
+            assertEquals(Currency.USD, entry2.currency());
+            assertEquals(new BigDecimal("20"), entry2.amount());
+            assertEquals(new BigDecimal("20"), entry2.balance());
+
+            assertBalance("5", a1);
+            assertBalance("20", a2);
+        }
+
+        @Test
+        void failedTransferLeavesHistoryUnchanged() {
+            Bank bank = new Bank();
+
+            Account a1 = bank.openAccount("a1", Currency.USD);
+            Account a2 = bank.openAccount("a2", Currency.USD);
+            bank.deposit(a1.getId(), new BigDecimal("25"), Currency.USD);
+            assertThrows(IllegalArgumentException.class, () -> bank.transfer(a1.getId(), a2.getId(), new BigDecimal("-1")));
+
+            List<Transaction> a1history = bank.getHistory(a1.getId());
+            List<Transaction> a2history = bank.getHistory(a2.getId());
+            assertEquals(1, a1history.size());
+            assertEquals(0, a2history.size());
+            assertBalance("25", a1);
+            assertBalance("0", a2);
+        }
+
+        @Test
+        void historyCannotBeCleared() {
+            Bank bank = new Bank();
+
+            Account a1 = bank.openAccount("a1", Currency.USD);
+            bank.deposit(a1.getId(), new BigDecimal("25"), Currency.USD);
+
+            List<Transaction> history = bank.getHistory(a1.getId());
+            assertEquals(1, history.size());
+            assertThrows(UnsupportedOperationException.class, history::clear);
+
+            history = bank.getHistory(a1.getId());
+            assertEquals(1, history.size());
 
         }
     }
