@@ -386,6 +386,28 @@ class BankTest {
         }
     }
 
+    @Nested
+    class TransactionHistory {
+        @Test
+        void depositCreatesHistory() {
+            Bank bank = new Bank();
+
+            Account a1 = bank.openAccount("a1", Currency.USD);
+            bank.deposit(a1.getId(), new BigDecimal("25"), Currency.USD);
+
+            List<Transaction> history = bank.getHistory(a1.getId());
+            var entry = history.get(0);
+            assertEquals(1, history.size());
+            assertEquals(TransactionType.DEPOSIT, entry.type());
+            assertEquals(Currency.USD, entry.currency());
+            assertEquals(new BigDecimal("25"), entry.amount());
+            assertEquals(new BigDecimal("25"), entry.balance());
+            assertBalance("25", a1);
+
+
+        }
+    }
+
 }
 
 

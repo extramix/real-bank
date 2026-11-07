@@ -1,12 +1,15 @@
 package dev.extramix;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Bank {
 
     private final Map<String, Account> accounts = new HashMap<>();
+    private final Map<String, List<Transaction>> history = new HashMap<>();
 
     private Account requireAccount(String id) {
         Account account = accounts.get(id);
@@ -35,6 +38,7 @@ public class Bank {
             convertedAmount = convert(amount, currency, account.getCurrency());
         }
         account.credit(convertedAmount);
+        appendHistory(id, new Transaction(amount, currency, account.getBalance(), TransactionType.DEPOSIT));
     }
 
     public void withdraw(String id, BigDecimal amount, Currency currency) {
@@ -43,6 +47,8 @@ public class Bank {
             throw new IllegalArgumentException("cannot withdraw with different currency");
         }
         account.debit(amount);
+        appendHistory(id, new Transaction(amount, currency, account.getBalance(), TransactionType.WITHDRAW));
+
     }
 
     private BigDecimal convert(BigDecimal sourceAmount, Currency sourceCurrency, Currency destinationCurrency) {
@@ -71,7 +77,20 @@ public class Bank {
             }
             sender.debit(amount);
             recipient.credit(toBeTransferredAmount);
+            appendHistory(recipient.getId(), new Transaction(amount, sender.getCurrency(), sender.getBalance(), TransactionType.TRANSFER_IN));
+            appendHistory(recipient.getId(), new Transaction(toBeTransferredAmount, recipient.getCurrency(), recipient.getBalance(), TransactionType.TRANSFER_OUT));
         }
+    }
+
+    public List<Transaction> getHistory(String id) {
+        if (!history.containsKey(id)) {
+            throw new IllegalArgumentException("account not found");
+        }
+        return history.get(id);
+    }
+
+    private void appendHistory(String id, Transaction transaction) {
+        history.computeIfAbsent(id, k -> new ArrayList<>()).add(transaction);
     }
 
 
